@@ -1,0 +1,166 @@
+1.1 Projektstruktúra létrehozása
+Projekt könyvtár létrehozása
+
+HTML, CSS, JS mappák létrehozása (pl. /src, /assets)
+
+Fő HTML fájl (index.html) létrehozása
+
+Alap CSS fájl létrehozása (style.css)
+
+Alap JS fájl létrehozása (main.js)
+
+1.2 Verziókezelés
+Git repository létrehozása
+
+.gitignore beállítása
+
+Alap README.md fájl készítése a projekthez
+
+2. Design / UI / UX tervezés
+2.1 Színséma és betűtípusok
+Színséma beállítása (háttér, kiemelés, interakció, szöveg)
+
+Webfont betöltése (Google Fonts vagy saját)
+
+Globális CSS változók létrehozása
+
+2.2 Layout és oldalstruktúra
+Főoldal vázlatának HTML felépítése
+
+Navigációs menü HTML + CSS (reszponzív)
+
+Alap oldal sablon: header, main, footer
+
+2.3 Reszponzivitás
+Mobil nézet kialakítása (media query)
+
+Tablet és desktop nézet beállítása
+
+3. Firebase integráció előkészítése
+3.1 Firebase setup
+Firebase projekt létrehozása
+
+Webes Firebase SDK hozzáadása
+
+Alap Firebase inicializálás JS-ben
+
+3.2 Firebase Auth előkészítés
+Email/jelszó és Google auth engedélyezése a Firebase-ben
+
+4. Felhasználói fiók funkciók (auth)
+4.1 Regisztráció + bejelentkezés UI
+Regisztrációs űrlap létrehozása
+
+Bejelentkezési űrlap kialakítása
+
+Google bejelentkezés gomb hozzáadása
+
+4.2 Auth működés
+Email + jelszavas regisztráció Firebase-szel
+
+Email megerősítés logika megvalósítása
+
+Google auth kezelése
+
+Auth állapot figyelése (bejelentkezve van-e)
+
+4.3 Egyedi azonosítók generálása
+6 karakteres azonosító generátor írása
+
+Felhasználónév egyediségének ellenőrzése Firebase-ben
+
+Email cím és felhasználónév külön collection-ökbe mentése
+
+4.4 Hibakezelés
+Regisztrációs hibák (duplikált email)
+
+Félbehagyott regisztráció újraindításának kezelése
+
+5. Kérdés / feladvány rendszer
+5.1 Kérdés beküldési forma UI
+Kérdés típus kiválasztása
+
+Kategória kiválasztása
+
+Szöveg beírása mező
+
+Kérdés azonosító generálása (4 karakteres)
+
+Beküldés gomb
+
+5.2 Kérdés mentés Firestore-ba
+Kérdés dokumentum létrehozása megfelelő field-ekkel
+
+Kérdés azonosító egyediségi ellenőrzése
+
+6. Kérdések megjelenítése és válaszadás
+6.1 Kérdések listázása
+Felfedezés oldal struktúra kialakítása
+
+Kérdések lekérdezése Firestore-ból
+
+Szűrés kategória alapján
+
+6.2 Kérdés oldal + válasz funkciók
+Szöveges válaszadás UI
+
+Opciós válasz (gombok)
+
+Statisztika elrejtése válaszadás előtt
+
+Saját válasz elmentése
+
+Mások válaszainak megjelenítése saját válasz után
+
+Like + válaszreakciók kialakítása
+
+Komment szekció UI + adatstruktúra
+
+Hozzászólás beküldés, válasz, like, jelentés
+
+7. Heti kérdés funkció
+7.1 Heti kérdés logika
+Boolean flag hozzáadása a kérdéshez
+
+Funkció írása: csak szerepelt_e=false kérdésekből véletlenszerűen kiválaszt egyet
+
+Minden hétfő 06:00-kor trigger (manuálisan vagy CRON jellegű időzítés)
+
+8. Moderáció és biztonság
+8.1 Jelentés logika
+Jelentés gomb beépítése
+
+Jelentések beküldése külön collection-be
+
+Admin szűrési lehetőség UI (későbbre halasztható)
+
+8.2 Tiltott szavak
+Tiltott szavak listájának létrehozása
+
+Válasz és komment szövegének ellenőrzése küldés előtt
+
+8.3 Saját válaszok és kommentek törlése
+Törlés gomb hozzáadása saját bejegyzésekhez
+
+9. Navigáció és oldalstruktúra bővítés
+Főoldal: heti kérdés + népszerű kérdések
+
+Profil oldal: saját válaszok és törlés
+
+Közösség oldal: aktív felhasználók + viták
+
+Segítség oldal: FAQ + űrlap
+
+10. SEO optimalizálás
+Meta tagek beállítása minden oldalhoz
+
+Kérdésekhez dinamikus description/meta
+
+Oldalak indexelhetőségének engedélyezése
+
+11. Tesztelés és finomhangolás
+Mobil nézetek tesztelése különböző képernyőméreteken
+
+Válaszadási logikák tesztelése (feltételek, válasz után statisztika)
+
+Email megerősítés, hibaesetek lefedése
