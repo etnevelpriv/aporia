@@ -5,6 +5,67 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "redirects": [
+      {
+        "source": "/index.html",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/explore.html",
+        "destination": "/explore",
+        "type": 301
+      },
+      {
+        "source": "/community.html",
+        "destination": "/community",
+        "type": 301
+      },
+      {
+        "source": "/login.html",
+        "destination": "/login",
+        "type": 301
+      },
+      {
+        "source": "/profile.html",
+        "destination": "/profile",
+        "type": 301
+      },
+      {
+        "source": "/registration.html",
+        "destination": "/registration",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/registration",
+        "destination": "/registration.html"
+      },
+      {
+        "source": "/login",
+        "destination": "/login.html"
+      },
+      {
+        "source": "/profile",
+        "destination": "/profile.html"
+      },
+      {
+        "source": "/admin",
+        "destination": "/admin.html"
+      },
+      {
+        "source": "/explore",
+        "destination": "/explore.html"
+      },
+      {
+        "source": "/community/**",
+        "destination": "/community.html"
+      }
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "errorPage": "/404.html"
   }
 }

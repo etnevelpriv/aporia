@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+/**Base styles**/
+:root {
+    --primary-color: #456565;
+    --secondary-color: #2BCBCB;
+    --third-color: #51B8CB;
+    --background-color: #1B1E23;
+    --text-color: #D2DCDC;
+
+    --lora-family: "Lora", serif;
+    --roboto-family: "Roboto", sans-serif;
+
+    --font-optical-sizing: auto;
+    --font-weight: 400;
+    --font-weight-bold: 700;
+    --font-style: normal;
+    --font-variation-settings: "wdth" 100;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--roboto-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    font-style: var(--font-style);
+    font-variation-settings: var(--font-variation-settings);
+    color: var(--secondary-color);
+}
+
+h1 {}
+
+h2 {}
+
+h3 {}
+
+p {}
+
+a {}
+
+a:hover {}
