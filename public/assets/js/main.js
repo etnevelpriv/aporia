@@ -1,4 +1,3 @@
-// Hamburger menu
 const hamburger = document.getElementById('hamburger-menu');
 const fullscreenMenu = document.getElementById('fullscreen-menu');
 

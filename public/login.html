@@ -21,25 +21,66 @@
 
     <!--Font Awesome-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
 
-    <!--Navigation bar-->
+    <!-- Navbar start -->
+    <div class="authnav container-fluid">
+        <img src="./assets/images/arrow.webp" alt="">
+    </div>
+    <!-- Navbar end -->
 
-    <!-- Small title -->
+    <!-- Welcome text -->
+    <div class="auth-page">
+        <div class="auth-welcome">
+            <h2>Welcome back,</h2>
+            <p>Check out what you have missed recently.</p>
+        </div>
 
-    <!--Search bar-->
+        <!-- Form for email and password (and Captcha) -->
 
-    <!-- List of the types of question and puzzles -->
+        <div class="auth-form">
+            <form id="auth-form">
+                <div id="warning-message" class="text-danger mt-3 warning-text" style="display:none;"></div>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+                </div>
+                <label for="password">Password</label>
+                <div class="form-group password-group">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <button class="eye-button"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                <button type="submit" class="auth-button">Login</button>
+                <p class="text-muted">Forgot your password? <a href="#" id="forgot-password-link">Click here</a>.</p>
+                <p class="text-muted">You do not have an account yet? <a href="./registration.html">Register here</a>.</p>
 
-    <!-- Cards container which contains the searched questions -->
+                <div class="text-center">
+                    <p class="text-muted">Or sign in with:</p>
+                    <button type="button" class="reverse-button" id="google-signup-button">
+                        <i class="fab fa-google"></i> Sign in with Google
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Footer section -->
-
     <!--Own scripts-->
-    <script src="./assets/js/firebase_init.js"></script>
-    <script src="./assets/js/auth.js"></script>
+    <script src="./assets/js/toggle_password.js"></script>
+    <script type="module" src="./assets/js/firebase_init.js"></script>
+    <script src=""></script>
+    <script type="module" src="./assets/js/login_auth.js"></script>
+    <script type="module">
+      import { showForgotPasswordModal } from './assets/js/forgot_password.js';
+      document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        showForgotPasswordModal();
+      });
+    </script>
 </body>
 
 </html>
