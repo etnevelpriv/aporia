@@ -50,7 +50,13 @@ h1 {
     font-weight: var(--font-weight-bold);
 }
 
-h2 {}
+h2 {
+    font-size: 2.5rem !important;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+    font-weight: var(--font-weight-bold);
+}
 
 h3 {}
 
@@ -112,9 +118,11 @@ button:focus {
 .reverse-button:hover {
     color: var(--text-color) !important;
 }
+
 .reverse-button:after {
     background: var(--background-color) !important;
 }
+
 .reverse-button:hover:after {
     width: 100%;
 }
@@ -139,12 +147,123 @@ a:hover {
     font-size: 1.2rem;
 }
 
-/**Base styles end**/
+@media (max-width: 600px) {
+    h2 {
+        font-size: 2rem !important;
+    }
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background-color: var(--background-color) !important;
+    color: var(--text-color);
+    padding: 15px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight);
+    font-style: var(--font-style);
+    border: 2px solid var(--secondary-color) !important;
+    font-size: 1.1rem;
+    min-width: 180px;
+    text-align: center;
+    display: none;
+    opacity: 1;
+    transition: opacity 0.5s;
+}
+
+.toast.toast-fadeout {
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(27, 30, 35, 0.85);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modal-fade-in 0.2s;
+}
+
+.modal-box {
+    background: var(--background-color);
+    color: var(--text-color);
+    box-shadow: 0 4px 32px 0 rgba(43, 203, 203, 0.15);
+    padding: 32px 28px 24px 28px;
+    min-width: 320px;
+    max-width: 90vw;
+    max-height: 90vh;
+    font-family: var(--lora-family);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: modal-pop-in 0.2s;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.modal-message {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    width: 100%;
+}
+
+.modal-button {
+    min-width: 100px;
+    padding: 8px 18px;
+    font-size: 1.1rem;
+}
+@keyframes modal-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-pop-in {
+    0% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/** Navbar styles start **/
 
 .navbar {
     background: var(--background-color);
     box-shadow: none;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
     position: fixed !important;
     top: 0;
     width: 100%;
@@ -153,8 +272,7 @@ a:hover {
 }
 
 .navbar.scrolled {
-    background: rgba(27, 30, 35, 0.95);
-    box-shadow: 0 2px 16px 0 rgba(43, 203, 203, 0.08);
+    box-shadow: 0 2px 16px 0 rgba(43, 203, 203, 0.1);
 }
 
 .navbar-brand {
@@ -169,6 +287,10 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.navbar-brand:hover {
+    color: var(--secondary-color) !important;
 }
 
 .navbar-brand-icon {
@@ -216,8 +338,7 @@ a:hover {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.menu-items .nav-link:hover::after,
-.menu-items .nav-link.active::after {
+.menu-items .nav-link:hover::after {
     transform: scaleX(1);
 }
 
@@ -257,7 +378,6 @@ a:hover {
     height: 4px;
     background: var(--secondary-color);
     margin: 4px 0;
-    border-radius: 2px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -270,15 +390,15 @@ a:hover {
 .hamburger.active .line:nth-child(1) {
     transform: translateY(12px) rotate(45deg);
 }
+
 .hamburger.active .line:nth-child(2) {
     opacity: 0;
     transform: scaleX(0);
 }
+
 .hamburger.active .line:nth-child(3) {
     transform: translateY(-12px) rotate(-45deg);
 }
-
-
 
 .fullscreen-menu {
     display: flex;
@@ -330,6 +450,10 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.navbar-button-a {
+    display: none;
 }
 
 /** Navbar styles end **/
@@ -476,11 +600,12 @@ a:hover {
         min-height: 150px;
     }
 }
+
 /** Hero section styles end **/
 
 /**Auth styles start**/
 
-.authnav{
+.authnav {
     display: flex;
     position: relative;
     align-items: center;
@@ -496,7 +621,30 @@ a:hover {
     width: 40px;
     height: 40px;
     margin-left: 20px;
+}
 
+.authnav button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: transparent;
+}
+
+.auth-nav button:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    transition: none;
+}
+
+.authnav button::after {
+    background: transparent;
+}
+
+.authnav button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background-color: transparent !important;
 }
 
 .auth-form {
@@ -573,7 +721,6 @@ a:hover {
 }
 
 .auth-welcome h2 {
-    font-size: 2.5rem !important;
     margin-bottom: 10px;
 }
 
@@ -628,6 +775,7 @@ a:hover {
 .eye-button:focus {
     outline: none !important;
     box-shadow: none !important;
+    border: none !important;
 }
 
 .eye-button::after {
@@ -635,6 +783,630 @@ a:hover {
     background: transparent !important;
     transform: none;
 }
+
 /** Auth styles end **/
 
-/** Profile styles **/
+/** Profile styles start **/
+
+.profile-login {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: unset;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: unset;
+    text-align: center;
+    margin: 0 auto;
+    margin-top: 100px;
+    font-family: var(--lora-family);
+    color: var(--text-color) !important;
+}
+
+.profile-page button {
+    width: 200px;
+    margin-top: 20px;
+}
+
+.profile-info p {
+    margin: 20px 0;
+    font-size: 1.2rem;
+}
+
+.profile-info strong {
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+}
+
+.profile-card-container {
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: unset;
+    margin: 0 auto;
+}
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    background-color: var(--background-color);
+    border-radius: unset;
+    margin: 0 auto;
+}
+
+/** Profile styles end **/
+
+/** Admin style start **/
+
+.admin-login {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: unset;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.admin-login form {
+    background: var(--background-color);
+    padding: 10px 5px;
+    border-radius: unset;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 320px;
+    max-width: 400px;
+    width: 100%;
+}
+
+.admin-login .form-group {
+    width: 100%;
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+.admin-login label {
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    color: var(--secondary-color);
+    margin-bottom: 6px;
+    display: block;
+    text-align: start;
+}
+
+.admin-login input[type="email"],
+.admin-login input[type="password"],
+.admin-login input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--secondary-color);
+    border-radius: unset;
+    background-color: transparent;
+    color: var(--text-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight);
+    margin-bottom: 0;
+}
+
+.admin-login input:focus {
+    outline: none;
+    background-color: transparent;
+    color: var(--text-color);
+    box-shadow: 0px 0px 20px rgba(43, 203, 203, 0.2);
+}
+
+.admin-login .eye-button {
+    top: 0px !important;
+}
+
+.admin-login button[type="submit"] {
+    width: 200px;
+    margin-top: 10px;
+    font-size: 1.2rem !important;
+    padding: 10px;
+    border-radius: unset;
+    border: 2px solid var(--secondary-color);
+    background-color: transparent;
+}
+
+@media (max-width: 600px) {
+    .admin-login form {
+        min-width: unset;
+        max-width: 100%;
+        padding: 20px 10px;
+    }
+}
+
+#admin-page {
+    background: var(--background-color);
+    color: var(--text-color);
+    padding: 40px 0 60px 0;
+    min-height: 100vh;
+    font-family: var(--roboto-family);
+}
+
+#admin-page h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--secondary-color);
+}
+
+#admin-content {
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgba(27, 30, 35, 0.98);
+    box-shadow: 0 4px 32px 0 rgba(43, 203, 203, 0.08);
+    padding: 32px 24px 24px 24px;
+}
+
+#puzzles-section h3 {
+    color: var(--third-color);
+    font-size: 2rem;
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+#puzzle-form {
+    background: var(--background-color);
+    box-shadow: 0 2px 12px 0 rgba(43, 203, 203, 0.05);
+    padding: 24px 18px 18px 18px;
+    margin-bottom: 32px;
+}
+
+#puzzle-form .form-group label {
+    color: var(--secondary-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+}
+
+#puzzle-form .form-control {
+    background: transparent;
+    color: var(--text-color);
+    border: 2px solid var(--third-color);
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+}
+
+#puzzle-form .form-control:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 8px 0 rgba(43, 203, 203, 0.2);
+}
+
+#puzzle-form button {
+    margin-right: 10px;
+    margin-top: 10px;
+    width: 160px;
+}
+
+#puzzles-list {
+    margin-top: 18px;
+}
+
+#puzzles-list .card {
+    background: rgba(27, 30, 35, 0.98);
+    border: 1.5px solid var(--third-color);
+    margin-bottom: 18px;
+    box-shadow: 0 2px 12px 0 rgba(43, 203, 203, 0.05);
+}
+
+#puzzles-list .card-title {
+    color: var(--secondary-color);
+    font-family: var(--lora-family);
+    font-size: 1.3rem;
+}
+
+#puzzles-list .badge-info {
+    background: var(--third-color);
+    color: var(--background-color);
+    font-size: 1rem;
+    margin-left: 8px;
+}
+
+@media (max-width: 700px) {
+    #admin-content {
+        padding: 10px 2vw 10px 2vw;
+    }
+
+    #puzzle-form {
+        padding: 10px 2vw 10px 2vw;
+    }
+}
+
+/** Puzzlepage styles start **/
+
+.puzzle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: unset;
+    margin: 0 auto;
+    max-width: 600px;
+    margin-top: 100px;
+    font-family: var(--lora-family);
+    color: var(--text-color) !important;
+    font-weight: var(--font-weight);
+    font-style: var(--font-style);
+}
+
+.puzzle-container h2,
+.puzzle-text {
+    text-align: center;
+}
+
+.puzzle-text {
+    font-family: var(--roboto-family);
+    font-weight: var(--font-weight);
+    font-style: var(--font-style);
+    font-size: 1.1rem;
+}
+
+.puzzle-catdate {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: end !important;
+    width: 100%;
+    margin: 10px 0;
+    margin-bottom: 20px;
+}
+
+.answer-input {
+    width: 100%;
+    border-radius: unset;
+    background-color: transparent;
+    color: var(--text-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight);
+}
+
+.answer-input textarea {
+    width: 100%;
+    height: 100px;
+    resize: none;
+    border: 2px solid var(--secondary-color);
+    border-radius: unset;
+    background-color: transparent;
+    color: var(--text-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight);
+    margin-bottom: 10px;
+}
+
+.answer-input textarea:focus {
+    outline: none;
+    background-color: transparent;
+    color: var(--text-color);
+    border: 2px solid var(--secondary-color);
+    box-shadow: 0px 0px 20px rgba(43, 203, 203, 0.2);
+}
+
+.puzzle-wouldyourather-question {
+    text-align: center;
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    margin: 20px 0;
+    max-width: 600px;
+}
+
+.puzzle-wouldyourather-question .puzzle-options {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.puzzle-wouldyourather-question button {
+    width: 200px;
+}
+
+.puzzle-wouldyourather-question span {
+    width: 100px;
+}
+
+@media (max-width: 600px) {
+
+    .puzzle-container h2,
+    .puzzle-text {
+        text-align: start;
+    }
+
+    .puzzle-wouldyourather-question .puzzle-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+.answers-comments-container {
+    margin: 40px auto 0 auto;
+    max-width: 700px;
+    width: 95%;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.answer-item {
+    background: var(--background-color);
+    border: 2px solid var(--secondary-color);
+    box-shadow: 0 2px 16px 0 rgba(43, 203, 203, 0.08);
+    padding: 22px 28px 16px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    transition: box-shadow 0.2s;
+}
+
+.answer-item:hover {
+    box-shadow: 0 4px 24px 0 rgba(43, 203, 203, 0.2);
+}
+
+.answer-header {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    text-align: start;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.comment-userid,
+.answer-userid {
+    color: var(--secondary-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+    align-items: start;
+    text-align: start;
+    font-family: var(--lora-family);
+    margin-bottom: 5px;
+}
+
+.comment-text,
+.answer-text {
+    color: var(--text-color);
+    font-weight: var(--font-weight);
+    font-size: 1rem;
+    align-items: start;
+    text-align: start;
+    font-family: var(--lora-family);
+}
+
+.comment-delete-btn,
+.like-btn,
+.answer-delete-btn {
+    color: var(--text-color) !important;
+    background-color: transparent !important;
+    border: none !important;
+    font-size: 1.1rem !important;
+    width: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+}
+
+.comment-delete-btn:hover,
+.like-btn:hover,
+.answer-delete-btn:hover {
+    color: var(--secondary-color) !important;
+    cursor: pointer;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.comment-delete-btn:focus,
+.like-btn:focus,
+.answer-delete-btn:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.comment-delete-btn::after,
+.like-btn::after,
+.answer-delete-btn::after {
+    transition: none;
+    background: transparent !important;
+    transform: none;
+    background: var(--background-color);
+    color: var(--secondary-color);
+}
+
+.toggle-comments-btn {
+    width: 100%;
+}
+
+.answer-date {
+    font-size: 0.95rem;
+    color: #7fa6a6;
+    margin-left: 8px;
+}
+
+.answer-content {
+    font-size: 1.15rem;
+    color: var(--text-color);
+    font-family: var(--roboto-family);
+    margin-bottom: 6px;
+}
+
+.answer-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 4px;
+}
+
+.answer-action-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.answer-action-row,
+.comment-action-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.answer-likes,
+.comment-likes {
+    color: var(--third-color);
+    font-weight: var(--font-weight-bold);
+    margin-left: 2px;
+}
+
+.comments-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.comment-item {
+    background: #23282f;
+    border: 1.5px solid var(--third-color);
+    padding: 12px 18px 10px 18px;
+    font-size: 1.05rem;
+    color: var(--text-color);
+    font-family: var(--roboto-family);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.comment-author {
+    color: var(--secondary-color);
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    font-size: 1rem;
+}
+
+.comment-date {
+    font-size: 0.92rem;
+    color: #7fa6a6;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+}
+
+.comment-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--third-color);
+    font-size: 1rem;
+    font-family: var(--lora-family);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.comment-action-btn:hover {
+    background: var(--third-color);
+    color: var(--background-color);
+}
+
+.add-comment-box {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.comment-input {
+    flex: 1;
+    border: 2px solid var(--secondary-color);
+    padding: 8px 12px;
+    font-size: 1.05rem;
+    width: 100%;
+    font-family: var(--roboto-family);
+    background: var(--background-color);
+    color: var(--text-color);
+    resize: vertical;
+    min-height: 36px;
+    transition: border 0.2s;
+}
+
+.comment-input:focus {
+    border: 2px solid var(--third-color);
+    outline: none;
+}
+
+.comment-btn {
+    width: 200px;
+}
+
+@media (max-width: 700px) {
+    .answers-comments-container {
+        max-width: 99vw;
+        padding: 0 2vw;
+    }
+
+    .answer-item {
+        padding: 16px 8px 12px 8px;
+    }
+
+    .comment-item {
+        padding: 10px 6px 8px 10px;
+    }
+
+    .answer-action-row,
+    .comment-action-row {
+        gap: 6px;
+    }
+}
+
+/** Puzzlepage styles end **/

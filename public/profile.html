@@ -15,7 +15,7 @@
 
     <!--Own style-->
     <link rel="stylesheet" href="./assets/css/style.css">
-
+    
     <!--Bootstrap-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -25,20 +25,116 @@
 
 <body>
 
-    <!--Navigation bar-->
+    <!-- Navbar Start -->
+    <nav class="navbar container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="./assets/images/icon.svg" alt="Aporia Icon" class="navbar-brand-icon">
+            <span class="largescreen">Aporia</span>
+        </a>
+        <div class="navbar-menu largescreen">
+            <ul class="menu-items">
+                <li class="menu-item">
+                    <a class="nav-link active" aria-current="page" href="./index.html">Home</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="./explore">Explore</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="./community.html">Community</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="./profile.html">Profile</a>
+                </li>
+            </ul>
+        </div>
+        <a class="largescreen navbar-button-a" href="./login.html"><button class="navbar-button">Login</button></a>
+        <div class="hamburger" id="hamburger-menu">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </div>
+    </nav>
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <ul class="menu-items">
+            <li class="menu-item">
+                <a class="nav-link active" aria-current="page" href="./index.html">Home</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="./explore">Explore</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="./community.html">Community</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="./profile.html">Profile</a>
+            </li>
+        </ul>
+        <a class="navbar-button-a" href="./login.html"><button class="navbar-button">Login</button></a>
+    </div>
+    <!-- Navbar End -->
 
     <!-- Encourage to login (if the user is not logged in, then only this appears) -->
+    <div class="profile-login" id="encourageLogin">
+        <h2>Welcome to your profile!</h2>
+        <p>Please log in to view and manage your profile.</p>
+        <a href="./login.html"><button class="navbar-button">Login</button></a>
+    </div>
 
     <!-- Profile informations (username, email address, date of creation, profile delete button) -->
+    <div class="profile-page">
+        <div class="profile-info" id="profileInfo">
+            <h2>Good afternoon <span id="userID"></span></h2>
+            <p id="email"></p>
+            <p id="creationdate"></p>
+            <div class="row profile-card-container">
+                <div class="col-sm-12 col-md-4 col-lg-4">
+                    <div class="profile-card">
+                        <strong>Decisions</strong>
+                        <p id="decisionsCount">0</p>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4">
+                    <div class="profile-card">
+                        <strong>Comments</strong>
+                        <p id="commentCount">0</p>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4">
+                    <div class="profile-card">
+                        <strong>Answers</strong>
+                        <p id="answerCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <button id="deleteProfileButton">Delete Profile</button>
+            <button id="logoutButton">Logout</button>
+            <button id="changePasswordButton">Change Password</button>
+        </div>
 
-    <!-- List of older responses, comments ordered by date-->
+        <!-- User Decisions List -->
+        <div class="profile-section">
+            <h3>Your Decisions</h3>
+            <ul id="userDecisionsList" class="list-group"></ul>
+        </div>
+        <!-- User Answers List -->
+        <div class="profile-section">
+            <h3>Your Answers</h3>
+            <ul id="userAnswersList" class="list-group"></ul>
+        </div>
+        <!-- User Comments List -->
+        <div class="profile-section">
+            <h3>Your Comments</h3>
+            <ul id="userCommentsList" class="list-group"></ul>
+        </div>
+
+    </div>
 
     <!-- Footer section -->
 
     <!--Own scripts-->
-    <script src="./assets/js/firebase_init.js"></script>
-    <script src="./assets/js/post.js"></script>
-    <script src="./assets/js/profile.js"></script>
+    <script type="module" src="assets/js/post.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/profile.js"></script>
 </body>
 
 </html>

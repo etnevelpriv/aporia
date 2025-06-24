@@ -36,6 +36,11 @@
         "source": "/registration.html",
         "destination": "/registration",
         "type": 301
+      },
+            {
+        "source": "/puzzle.html",
+        "destination": "/puzzle",
+        "type": 301
       }
     ],
     "rewrites": [
@@ -62,6 +67,10 @@
       {
         "source": "/community/**",
         "destination": "/community.html"
+      },
+      {
+        "source": "/puzzle/**",
+        "destination": "/puzzle.html"
       }
     ],
     "cleanUrls": true,

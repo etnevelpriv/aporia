@@ -91,7 +91,7 @@ if (registrationForm) {
           try {
             const oldUserCred = await signInWithEmailAndPassword(auth, email, password);
             await oldUserCred.user.delete();
-            showWarning('It looks like you started your registration before, but did not finish it. We have deleted your old account, please try again.');
+            showWarning('It looks like you started your registration before but did not finish it. We have deleted your old account. Please try again.');
             return;
           } catch (delErr) {
             return;

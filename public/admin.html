@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Admin</title>
+
+    <!--Own style-->
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!--Font Awesome-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Admin login -->
+
+    <div class="admin-login">
+        <form id="admin-login-form">
+            <div class="form-group">
+                <label for="admin-username">Email</label>
+                <input type="email" id="admin-username" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <div class="password-group">
+                    <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    <button class="eye-button"><i class="fa-solid fa-eye"></i></button>
+                </div>
+            </div>
+        </form>
+        <button type="submit">Login</button>
+    </div>
+
+    <!-- Admin page -->
+
+    <div id="admin-page">
+        <h2>Admin Dashboard</h2>
+        <div id="admin-content">
+            <section id="puzzles-section">
+                <h3>Puzzles Management</h3>
+                <form id="puzzle-form">
+                    <input type="hidden" id="puzzle-id">
+                    <div class="form-group">
+                        <label for="puzzleTitle">Title</label>
+                        <input type="text" id="puzzleTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="puzzleText">Text</label>
+                        <textarea id="puzzleText" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" class="form-control" required>
+                            <option value="paradoxon">Paradoxon</option>
+                            <option value="wouldyourather">Would You Rather</option>
+                            <option value="statement">Statement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tags">Tags (comma separated)</label>
+                        <input type="text" id="tags" class="form-control">
+                    </div>
+                    <div id="category-fields"></div>
+                    <button type="submit" >Save Puzzle</button>
+                    <button type="button" class="reverse-button" id="cancel-edit" style="display:none;">Cancel</button>
+                </form>
+                <hr>
+                <div id="puzzles-list">
+                    <!-- Puzzles will be listed here -->
+                </div>
+            </section>
+        </div>
+        <button id="logout-button">Logout</button>
+    </div>
+
+    <!--Own scripts-->
+    <script src="./assets/js/toggle_password.js"></script>
+    <script type="module" src="./assets/js/admin.js"></script>
+</body>
+
+</html>
