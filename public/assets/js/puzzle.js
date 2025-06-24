@@ -14,6 +14,8 @@ function createSlug(puzzle) {
 let puzzlesBySlug = {};
 
 let currentUser = null;
+let puzzleChart = null;
+
 const auth = getAuth();
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -51,6 +53,18 @@ function getpuzzleID(puzzle) {
     return puzzle.puzzleID || puzzle.id || puzzle.puzzleID || puzzle.slug || null;
 }
 
+function getUserDecision(user, puzzleID) {
+    if (!user) return null;
+    try {
+        const userData = JSON.parse(localStorage.getItem('userDataCache_' + user.userID));
+        if (userData && userData.decisions) {
+            const decision = userData.decisions.find(d => d.puzzleID === puzzleID);
+            return decision ? decision.decisionText : null;
+        }
+    } catch { }
+    return null;
+}
+
 function showToast(message, duration = 5000) {
     let toast = document.getElementById('toast');
     if (!toast) {
@@ -61,32 +75,25 @@ function showToast(message, duration = 5000) {
     } else {
         toast.classList.remove('toast-fadeout');
     }
+    
     toast.textContent = message;
     toast.style.display = 'block';
     toast.style.opacity = '1';
     toast.style.zIndex = '9999';
+    toast.style.cursor = 'pointer';
     void toast.offsetWidth;
 
-    toast.onclick = null;
-    toast.onclick = () => {
+    const hideToast = () => {
         toast.classList.add('toast-fadeout');
-        toast.addEventListener('transitionend', function handler() {
+        setTimeout(() => {
             toast.style.display = 'none';
             toast.classList.remove('toast-fadeout');
-            toast.removeEventListener('transitionend', handler);
-        });
+        }, 300);
     };
 
-    setTimeout(() => {
-        if (toast.style.display === 'block') {
-            toast.classList.add('toast-fadeout');
-            toast.addEventListener('transitionend', function handler() {
-                toast.style.display = 'none';
-                toast.classList.remove('toast-fadeout');
-                toast.removeEventListener('transitionend', handler);
-            });
-        }
-    }, duration);
+    toast.onclick = hideToast;
+
+    setTimeout(hideToast, duration);
 }
 
 function showConfirmModal(message, onConfirm) {
@@ -121,6 +128,115 @@ function showConfirmModal(message, onConfirm) {
         modal.appendChild(box);
         document.body.appendChild(modal);
     }
+}
+
+function renderPuzzleChart(puzzle) {
+    if (puzzleChart) {
+        puzzleChart.destroy();
+        puzzleChart = null;
+    }
+
+    const normalizedCategory = (puzzle.category || '').toLowerCase().replace(/\s+/g, '');
+
+    if (normalizedCategory !== 'statement' && normalizedCategory !== 'wouldyourather') {
+        return null;
+    }
+
+    const chartContainer = document.createElement('div');
+    chartContainer.className = 'puzzle-chart-container';
+
+    let chartData = {};
+    let chartColors = [];
+
+    if (normalizedCategory === 'statement') {
+        const agreedCount = puzzle.agreedNumber || 0;
+        const disagreedCount = puzzle.disagreedNumber || 0;
+        const total = agreedCount + disagreedCount;
+
+        chartData = {
+            labels: ['I Agree', 'I Disagree'],
+            datasets: [{
+                data: [agreedCount, disagreedCount],
+                backgroundColor: ['#456565', '#2BCBCB'],
+                borderColor: ['#456565', '#2BCBCB'],
+            }]
+        };
+        chartColors = ['#456565', '#2BCBCB'];
+    } else if (normalizedCategory === 'wouldyourather') {
+        const redCount = puzzle.optionRedNumber;
+        const blueCount = puzzle.optionBlueNumber;
+
+        const redLabel = puzzle.optionRed;
+        const blueLabel = puzzle.optionBlue;
+
+        chartData = {
+            labels: [redLabel, blueLabel],
+            datasets: [{
+                data: [redCount, blueCount],
+                backgroundColor: ['#456565', '#2BCBCB'],
+                borderColor: ['#456565', '#2BCBCB'],
+            }]
+        };
+        chartColors = ['#456565', '#2BCBCB'];
+    }
+
+    chartContainer.innerHTML = `
+        <canvas class="puzzle-chart-canvas" id="puzzleChart"></canvas>
+    `;
+
+    setTimeout(() => {
+        const ctx = document.getElementById('puzzleChart');
+        if (ctx) {
+            puzzleChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData, options: {
+                    maintainAspectRatio: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#D2DCDC',
+                                font: {
+                                    family: 'Lora',
+                                    size: 14
+                                },
+                                padding: 20,
+                                usePointStyle: false,
+                                boxWidth: 12,
+                                boxHeight: 12
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1B1E23',
+                            titleColor: '#2BCBCB',
+                            bodyColor: '#D2DCDC',
+                            borderColor: '#2BCBCB',
+                            borderWidth: 2,
+                            displayColors: false,
+                            callbacks: {
+                                title: function (context) {
+                                    const total = context[0].dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context[0].parsed / total) * 100).toFixed(1);
+                                    return `${context[0].label}: ${context[0].parsed} (${percentage}%)`;
+                                },
+                                label: function (context) {
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+
+                }
+            });
+        }
+    }, 100);
+
+    return chartContainer;
 }
 
 async function renderAnswersAndComments(puzzle) {
@@ -171,6 +287,26 @@ async function renderAnswersAndComments(puzzle) {
                     setTimeout(() => window.location.reload(), 1200);
                 };
                 actionRow.appendChild(likeBtn);
+
+                if (answer.userID !== user.userID) {
+                    const reportedBy = answer.reportedBy || [];
+                    const hasReported = reportedBy.includes(user.userID);
+                    if (!hasReported) {
+                        const reportBtn = document.createElement('button');
+                        reportBtn.className = 'like-btn';
+                        reportBtn.title = 'Report';
+                        reportBtn.innerHTML = '<i class="fa-solid fa-flag"></i>';
+                        reportBtn.onclick = () => {
+                            showConfirmModal('Are you sure you want to report this answer?', async () => {
+                                await reportAnswer(user.userID, puzzle.puzzleID, answer);
+                                showToast('Answer reported.');
+                                setTimeout(() => window.location.reload(), 1200);
+                            });
+                        };
+                        actionRow.appendChild(reportBtn);
+                    }
+                }
+
                 if (answer.userID === user.userID) {
                     const delBtn = document.createElement('button');
                     delBtn.title = 'Delete';
@@ -185,6 +321,7 @@ async function renderAnswersAndComments(puzzle) {
                     };
                     actionRow.appendChild(delBtn);
                 }
+
                 answerDiv.appendChild(actionRow);
             }
             const toggleBtn = document.createElement('button');
@@ -247,6 +384,26 @@ async function renderAnswersAndComments(puzzle) {
                                         setTimeout(() => window.location.reload(), 1200);
                                     };
                                     commentActionRow.appendChild(likeCommentBtn);
+
+                                    if (comment.userID !== user.userID) {
+                                        const reportedBy = comment.reportedBy || [];
+                                        const hasReported = reportedBy.includes(user.userID);
+                                        if (!hasReported) {
+                                            const reportCommentBtn = document.createElement('button');
+                                            reportCommentBtn.className = 'like-btn';
+                                            reportCommentBtn.title = 'Report';
+                                            reportCommentBtn.innerHTML = '<i class="fa-solid fa-flag"></i>';
+                                            reportCommentBtn.onclick = () => {
+                                                showConfirmModal('Are you sure you want to report this comment?', async () => {
+                                                    await reportComment(user.userID, puzzle.puzzleID, answer, comment);
+                                                    showToast('Comment reported.');
+                                                    setTimeout(() => window.location.reload(), 1200);
+                                                });
+                                            };
+                                            commentActionRow.appendChild(reportCommentBtn);
+                                        }
+                                    }
+
                                     if (comment.userID === user.userID) {
                                         const delBtn = document.createElement('button');
                                         delBtn.title = 'Delete';
@@ -371,7 +528,12 @@ async function deleteComment(userID, puzzleID, answerObj, commentObj) {
 async function renderPuzzle(puzzle) {
     const container = document.body;
 
-    Array.from(document.querySelectorAll('.puzzle-container, .answers-comments-container')).forEach(e => e.remove());
+    if (puzzleChart) {
+        puzzleChart.destroy();
+        puzzleChart = null;
+    }
+
+    Array.from(document.querySelectorAll('.puzzle-container, .answers-comments-container, .puzzle-chart-container')).forEach(e => e.remove());
 
     const puzzleDiv = document.createElement('div');
     puzzleDiv.className = `puzzle-container ${puzzle.category}`;
@@ -386,35 +548,37 @@ async function renderPuzzle(puzzle) {
 
     const normalizedCategory = (puzzle.category || '').toLowerCase().replace(/\s+/g, '');
 
-    container.appendChild(puzzleDiv);
-    const user = getCurrentUser();
+    container.appendChild(puzzleDiv); const user = getCurrentUser();
     const puzzleID = getpuzzleID(puzzle);
     let userHasDecided = false;
     let userHasAnswered = false;
+    let userDecision = null;
+
     if (user) {
         try {
-            const userData = JSON.parse(localStorage.getItem('userDataCache_' + user.userID));
-            if (userData) {
+            const userRef = doc(db, 'users', user.userID);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
                 userHasDecided = (userData.decisions || []).some(d => d.puzzleID === puzzleID);
                 userHasAnswered = (userData.answers || []).some(a => a.puzzleID === puzzleID);
-            }
-        } catch { }
-    }
 
-    if (user && (userHasDecided || userHasAnswered)) {
-        if (Array.isArray(puzzle.answers) && puzzle.answers.length > 0) {
-            const answersDiv = await renderAnswersAndComments(puzzle);
-            container.appendChild(answersDiv);
+                if (userHasDecided) {
+                    const decision = (userData.decisions || []).find(d => d.puzzleID === puzzleID);
+                    userDecision = decision ? decision.decisionText : null;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking user decisions:', error);
         }
-        return;
     }
 
     if (normalizedCategory === 'statement') {
         puzzleDiv.innerHTML += `
             <p class="statement-question">Do you agree with the statement above?</p>
             <div class="puzzle-options">
-                <button class="option-button" id="puzzleAgreeButton">I agree.</button>
-                <button class="option-button" id="puzzleDisagreeButton">I disagree.</button>
+                <button class="option-button agree-button" id="puzzleAgreeButton">I agree.</button>
+                <button class="option-button agree-button" id="puzzleDisagreeButton">I disagree.</button>
             </div>
         `;
     } else if (normalizedCategory === 'wouldyourather') {
@@ -435,14 +599,29 @@ async function renderPuzzle(puzzle) {
             <label for="puzzleAnswerInput">Your opinion:</label>
             <textarea id="puzzleAnswerInput" placeholder="You can type your thoughts here." rows="4" class="form-control"></textarea>
         </div>
-        <button id="puzzleAnswerSubmit">Submit</button>
-    `;
+        <button id="puzzleAnswerSubmit">Submit</button>    `; container.appendChild(puzzleDiv);
 
-    container.appendChild(puzzleDiv);
+    if (userHasDecided) {
+        const decisionDiv = document.createElement('div');
+        decisionDiv.className = 'user-decision-display';
+        decisionDiv.innerHTML = `
+            <h3>Your Decision:</h3>
+            <p class="user-decision-text">${userDecision}</p>
+        `;
+        container.appendChild(decisionDiv);
+
+        const chartDiv = renderPuzzleChart(puzzle);
+        if (chartDiv) {
+            container.appendChild(chartDiv);
+        }
+    }
+
     if (Array.isArray(puzzle.answers) && puzzle.answers.length > 0) {
         const answersDiv = await renderAnswersAndComments(puzzle);
         container.appendChild(answersDiv);
     }
+
+
     if (document.getElementById('puzzleAgreeButton')) {
         document.getElementById('puzzleAgreeButton').onclick = async () => {
             if (!user) return showToast('Login required!');
@@ -623,3 +802,72 @@ async function init() {
 }
 
 init();
+
+async function reportAnswer(userID, puzzleID, answerObj) {
+    const puzzleRef = doc(db, 'puzzles', puzzleID);
+    const puzzleSnap = await getDoc(puzzleRef);
+    let answersArr = puzzleSnap.data().answers || [];
+
+    answersArr = answersArr.map(a => {
+        if (a.answerID === answerObj.answerID) {
+            let reportedByArr = a.reportedBy || [];
+            if (!reportedByArr.includes(userID)) {
+                a.reportCount = (a.reportCount || 0) + 1;
+                reportedByArr.push(userID);
+                a.reportedBy = reportedByArr;
+            }
+        }
+        return a;
+    });
+
+    await updateDoc(puzzleRef, { answers: answersArr });
+}
+
+async function reportComment(userID, puzzleID, answerObj, commentObj) {
+    const puzzleRef = doc(db, 'puzzles', puzzleID);
+    const puzzleSnap = await getDoc(puzzleRef);
+    let answersArr = puzzleSnap.data().answers || [];
+
+    answersArr = answersArr.map(a => {
+        if (a.answerID === answerObj.answerID) {
+            a.comments = (a.comments || []).map(c => {
+                if (c.commentID === commentObj.commentID) {
+                    let reportedByArr = c.reportedBy || [];
+                    if (!reportedByArr.includes(userID)) {
+                        c.reportCount = (c.reportCount || 0) + 1;
+                        reportedByArr.push(userID);
+                        c.reportedBy = reportedByArr;
+                    }
+                }
+                return c;
+            });
+        }
+        return a;
+    });
+
+    await updateDoc(puzzleRef, { answers: answersArr });
+
+    const userRef = doc(db, 'users', userID);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+    let userAnswers = userData.answers || [];
+
+    userAnswers = userAnswers.map(ans => {
+        if (ans.answerID === answerObj.answerID) {
+            ans.comments = (ans.comments || []).map(c => {
+                if (c.commentID === commentObj.commentID) {
+                    let reportedByArr = c.reportedBy || [];
+                    if (!reportedByArr.includes(userID)) {
+                        c.reportCount = (c.reportCount || 0) + 1;
+                        reportedByArr.push(userID);
+                        c.reportedBy = reportedByArr;
+                    }
+                }
+                return c;
+            });
+        }
+        return ans;
+    });
+
+    await updateDoc(userRef, { answers: userAnswers });
+}
