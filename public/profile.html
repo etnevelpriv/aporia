@@ -15,7 +15,7 @@
 
     <!--Own style-->
     <link rel="stylesheet" href="./assets/css/style.css">
-    
+
     <!--Bootstrap-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -43,6 +43,9 @@
                     <a class="nav-link" href="./community.html">Community</a>
                 </li>
                 <li class="menu-item">
+                    <a class="nav-link" href="/create.html">Create</a>
+                </li>
+                <li class="menu-item">
                     <a class="nav-link" href="./profile.html">Profile</a>
                 </li>
             </ul>
@@ -64,6 +67,9 @@
             </li>
             <li class="menu-item">
                 <a class="nav-link" href="./community.html">Community</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="/create.html">Create</a>
             </li>
             <li class="menu-item">
                 <a class="nav-link" href="./profile.html">Profile</a>
@@ -98,11 +104,16 @@
                         <strong>Comments</strong>
                         <p id="commentCount">0</p>
                     </div>
-                </div>
-                <div class="col-sm-12 col-md-4 col-lg-4">
+                </div>                <div class="col-sm-12 col-md-4 col-lg-4">
                     <div class="profile-card">
                         <strong>Answers</strong>
                         <p id="answerCount">0</p>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 col-lg-4">
+                    <div class="profile-card">
+                        <strong>My Puzzles</strong>
+                        <p id="myPuzzlesCount">0</p>
                     </div>
                 </div>
             </div>
@@ -118,10 +129,19 @@
         <div class="profile-section">
             <h3>Your Answers</h3>
             <ul id="userAnswersList" class="list-group"></ul>
-        </div>
-        <div class="profile-section">
+        </div>        <div class="profile-section">
             <h3>Your Comments</h3>
             <ul id="userCommentsList" class="list-group"></ul>
+        </div>
+        <div class="profile-section">
+            <h3>Your Puzzles</h3>
+            <div class="my-puzzles-header">
+                <p>Puzzles you've created for the community</p>
+                <a href="/create.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Create New Puzzle
+                </a>
+            </div>
+            <ul id="userPuzzlesList" class="list-group"></ul>
         </div>
 
     </div>

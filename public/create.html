@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description"
+        content="A minimalist, thought-provoking web platform for discussing philosophical dilemmas, paradoxes, and ethical questions anonymously." />
+    <meta name="keywords"
+        content="philosophy, ethics, paradox, logic, dilemmas, debate, anonymous discussion, mental challenges, thought experiments" />
+    <meta name="author" content="Rasztovits Levente">
+
+    <title>Create Puzzle - Aporia</title>
+
+    <!--Own style-->
+    <link rel="stylesheet" href="./assets/css/style.css">
+
+    <!--Bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!--Font Awesome-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Navbar Start -->
+    <nav class="navbar container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="/assets/images/icon.svg" alt="Aporia Icon" class="navbar-brand-icon">
+            <span class="largescreen">Aporia</span>
+        </a>
+        <div class="navbar-menu largescreen">
+            <ul class="menu-items">
+                <li class="menu-item">
+                    <a class="nav-link" href="/index">Home</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="/explore">Explore</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="/community.html">Community</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link active" aria-current="page" href="/create.html">Create</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="/profile.html">Profile</a>
+                </li>
+            </ul>
+        </div>
+        <a class="largescreen navbar-button-a" href="/login.html"><button class="navbar-button">Login</button></a>
+        <div class="hamburger" id="hamburger-menu">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </div>
+    </nav>
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <ul class="menu-items">
+            <li class="menu-item">
+                <a class="nav-link" href="/index">Home</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="/explore">Explore</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="/community.html">Community</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link active" aria-current="page" href="/create.html">Create</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="/profile.html">Profile</a>
+            </li>
+        </ul>
+        <a class="navbar-button-a" href="/login.html"><button class="navbar-button">Login</button></a>
+    </div>
+    <!-- Navbar End -->
+
+    <div class="create-container">
+        <h2>Create New Puzzle</h2>
+        <form id="createPuzzleForm">
+            <div class="create-form-group">
+                <label for="puzzleCategory" class="create-form-label">Category *</label>
+                <select id="puzzleCategory" class="create-form-control" required>
+                    <option value="">Select a category</option>
+                    <option value="wouldyourather">Would you rather</option>
+                    <option value="paradox">Paradox</option>
+                    <option value="statement">Statement</option>
+                </select>
+            </div>
+
+            <div class="create-form-group">
+                <label for="puzzleTitle" class="create-form-label">Puzzle Title *</label>
+                <input type="text" id="puzzleTitle" class="create-form-control"
+                    placeholder="Enter a compelling title for your puzzle" maxlength="200" required>
+                <small class="text-muted">Maximum 200 characters</small>
+            </div>
+
+            <div class="create-form-group">
+                <label for="puzzleText" class="create-form-label">Puzzle Description *</label>
+                <textarea id="puzzleText" class="create-form-control" rows="6"
+                    placeholder="Describe your puzzle in detail. Be clear and thought-provoking..." maxlength="2000"
+                    required></textarea>
+                <small class="text-muted">Maximum 2000 characters</small>
+            </div>
+
+            <div id="wouldYouRatherOptions" class="create-form-group" style="display: none;">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6 col-lg-6">
+                        <label for="optionRed" class="create-form-label">Option A (Red) *</label>
+                        <input type="text" id="optionRed" class="create-form-control" placeholder="First option"
+                            maxlength="200">
+                        <small class="text-muted">Maximum 200 characters</small>
+                    </div>
+                    <div class="col-sm-12 col-md-6 col-lg-6">
+                        <label for="optionBlue" class="create-form-label">Option B (Blue) *</label>
+                        <input type="text" id="optionBlue" class="create-form-control" placeholder="Second option"
+                            maxlength="200">
+                        <small class="text-muted">Maximum 200 characters</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-form-group">
+                <label for="puzzleTags" class="create-form-label">Tags * (minimum 2 required)</label>
+                <input type="text" id="tagInput" class="create-form-control" placeholder="Type a tag and press Enter">
+                <small class="form-text text-muted">Add relevant tags to help others find your puzzle. Press Enter
+                    to add each tag.</small>
+                <div id="tagsDisplay" class="tags-display"></div>
+
+            </div>
+
+            <button type="submit" id="submitPuzzle">Create Puzzle</button>
+        </form>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin fa-3x"></i>
+            <p>Creating your puzzle...</p>
+        </div>
+    </div>
+
+    <!--Own scripts-->
+    <script type="module" src="/assets/js/create.js"></script>
+    <script type="module" src="/assets/js/main.js"></script>
+</body>
+
+</html>

@@ -15,6 +15,7 @@ let puzzlesBySlug = {};
 
 let currentUser = null;
 let puzzleChart = null;
+let currentPuzzle = null;
 
 const auth = getAuth();
 onAuthStateChanged(auth, async (user) => {
@@ -75,7 +76,7 @@ function showToast(message, duration = 5000) {
     } else {
         toast.classList.remove('toast-fadeout');
     }
-    
+
     toast.textContent = message;
     toast.style.display = 'block';
     toast.style.opacity = '1';
@@ -91,9 +92,336 @@ function showToast(message, duration = 5000) {
         }, 300);
     };
 
-    toast.onclick = hideToast;
+    toast.onclick = hideToast; setTimeout(hideToast, duration);
+}
 
-    setTimeout(hideToast, duration);
+function updateAnswerLikes(answerElement, newLikes, hasLiked) {
+    const likesSpan = answerElement.querySelector('.answer-likes');
+    if (likesSpan) {
+        likesSpan.textContent = newLikes;
+    }
+
+    const likeBtn = answerElement.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>';
+    }
+}
+
+function updateCommentLikes(commentElement, newLikes, hasLiked) {
+    const likesSpan = commentElement.querySelector('.comment-likes');
+    if (likesSpan) {
+        likesSpan.textContent = newLikes;
+    }
+
+    const likeBtn = commentElement.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>';
+    }
+}
+
+function removeAnswerFromDOM(answerElement) {
+    if (answerElement && answerElement.parentNode) {
+        answerElement.parentNode.removeChild(answerElement);
+    }
+}
+
+function removeCommentFromDOM(commentElement) {
+    if (commentElement && commentElement.parentNode) {
+        commentElement.parentNode.removeChild(commentElement);
+    }
+}
+
+function addCommentToDOM(commentsDiv, commentObj, user, answer, puzzle) {
+    const commentDiv = document.createElement('div');
+    commentDiv.className = 'comment-item';
+    commentDiv.setAttribute('data-comment-id', commentObj.commentID);
+
+    commentDiv.innerHTML = `
+        <span class="comment-userid">${commentObj.userID || ''}</span>
+        <span class="comment-text">${commentObj.commentText}</span>
+        <span>Likes: <span class="comment-likes">${commentObj.likes || 0}</span></span>
+    `;
+
+    if (user) {
+        const commentActionRow = document.createElement('div');
+        commentActionRow.className = 'comment-action-row';
+
+        const likeCommentBtn = document.createElement('button');
+        likeCommentBtn.className = 'like-btn';
+        likeCommentBtn.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
+        likeCommentBtn.onclick = async () => {
+            await handleCommentLike(user, puzzle, answer, commentObj, commentDiv);
+        };
+        commentActionRow.appendChild(likeCommentBtn);
+
+        if (commentObj.userID !== user.userID) {
+            const reportCommentBtn = document.createElement('button');
+            reportCommentBtn.className = 'like-btn';
+            reportCommentBtn.title = 'Report';
+            reportCommentBtn.innerHTML = '<i class="fa-solid fa-flag"></i>';
+            reportCommentBtn.onclick = () => {
+                showConfirmModal('Are you sure you want to report this comment?', async () => {
+                    await reportComment(user.userID, puzzle.puzzleID, answer, commentObj);
+                    showToast('Comment reported.');
+                });
+            };
+            commentActionRow.appendChild(reportCommentBtn);
+        }
+
+        if (commentObj.userID === user.userID) {
+            const delBtn = document.createElement('button');
+            delBtn.title = 'Delete';
+            delBtn.className = 'comment-delete-btn';
+            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            delBtn.onclick = () => {
+                showConfirmModal('Are you sure you want to delete this comment?', async () => {
+                    await deleteComment(user.userID, puzzle.puzzleID, answer, commentObj);
+                    removeCommentFromDOM(commentDiv);
+                    showToast('Comment deleted.');
+                });
+            };
+            commentActionRow.appendChild(delBtn);
+        }
+        commentDiv.appendChild(commentActionRow);
+    }
+
+    const addCommentBox = commentsDiv.querySelector('.add-comment-box');
+    if (addCommentBox) {
+        commentsDiv.insertBefore(commentDiv, addCommentBox);
+    } else {
+        commentsDiv.appendChild(commentDiv);
+    }
+}
+
+function updatePuzzleChart(puzzle) {
+    if (puzzleChart) {
+        const normalizedCategory = (puzzle.category || '').toLowerCase().replace(/\s+/g, '');
+
+        if (normalizedCategory === 'statement') {
+            const agreedCount = puzzle.agreedNumber || 0;
+            const disagreedCount = puzzle.disagreedNumber || 0;
+            puzzleChart.data.datasets[0].data = [agreedCount, disagreedCount];
+        } else if (normalizedCategory === 'wouldyourather') {
+            const redCount = puzzle.optionRedNumber || 0;
+            const blueCount = puzzle.optionBlueNumber || 0;
+            puzzleChart.data.datasets[0].data = [redCount, blueCount];
+        }
+
+        puzzleChart.update();
+    }
+}
+
+async function handleCommentLike(user, puzzle, answer, comment, commentElement) {
+    const puzzleRef = doc(db, 'puzzles', puzzle.puzzleID);
+    const puzzleSnap = await getDoc(puzzleRef);
+    let answersArr = puzzleSnap.data().answers || [];
+
+    let hasLiked = false;
+    let newLikes = 0;
+
+    answersArr = answersArr.map(a => {
+        if (a.answerID === answer.answerID) {
+            a.comments = (a.comments || []).map(c => {
+                if (c.commentID === comment.commentID) {
+                    let likedByArr = c.likedBy || [];
+                    hasLiked = likedByArr.includes(user.userID);
+
+                    if (hasLiked) {
+                        c.likes = Math.max((c.likes || 1) - 1, 0);
+                        likedByArr = likedByArr.filter(uid => uid !== user.userID);
+                    } else {
+                        c.likes = (c.likes || 0) + 1;
+                        likedByArr.push(user.userID);
+                    }
+                    c.likedBy = likedByArr;
+                    newLikes = c.likes;
+                }
+                return c;
+            });
+        }
+        return a;
+    });
+
+    await updateDoc(puzzleRef, { answers: answersArr }); updateCommentLikes(commentElement, newLikes, !hasLiked);
+    showToast(hasLiked ? 'You disliked this comment.' : 'You liked this comment.');
+}
+
+async function handleDecisionSubmit(user, puzzle, decisionText, updateField) {
+    const puzzleID = getpuzzleID(puzzle);
+    const ok = await saveDecision(user.userID, puzzleID, puzzle.puzzleTitle, decisionText);
+    if (ok) {
+        const puzzleRef = doc(db, 'puzzles', puzzleID);
+        const updateData = {};
+        updateData[updateField] = (puzzle[updateField] || 0) + 1;
+        await updateDoc(puzzleRef, updateData);
+
+        puzzle[updateField] = (puzzle[updateField] || 0) + 1;
+        currentPuzzle = puzzle;
+
+        const voteButtons = document.querySelectorAll('.option-button');
+        voteButtons.forEach(btn => btn.style.display = 'none');
+
+        const decisionDiv = document.createElement('div');
+        decisionDiv.className = 'user-decision-display';
+        decisionDiv.innerHTML = `
+            <h3>Your Decision:</h3>
+            <p class="user-decision-text">${decisionText}</p>
+        `;
+
+        const puzzleContainer = document.querySelector('.puzzle-container');
+        if (puzzleContainer) {
+            puzzleContainer.appendChild(decisionDiv);
+        }
+
+        const existingChart = document.querySelector('.puzzle-chart-container');
+        if (existingChart) {
+            existingChart.remove();
+        }
+
+        const chartDiv = renderPuzzleChart(puzzle);
+        if (chartDiv) {
+            const container = document.body;
+            container.appendChild(chartDiv);
+        }
+        showToast('Decision submitted!');
+    }
+}
+
+async function addAnswerToDOM(answerObj, user, puzzle) {
+    const answersContainer = document.querySelector('.answers-comments-container');
+    if (!answersContainer) {
+        const container = document.body;
+        const newAnswersDiv = document.createElement('div');
+        newAnswersDiv.className = 'answers-comments-container';
+        newAnswersDiv.innerHTML = '<h3>Answers</h3>';
+        container.appendChild(newAnswersDiv);
+    }
+
+    const answersDiv = document.querySelector('.answers-comments-container');
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'answer-item';
+    answerDiv.setAttribute('data-answer-id', answerObj.answerID);
+    answerDiv.innerHTML = `
+        <div class="answer-header">
+            <span class="answer-userid">${answerObj.userID || ''}</span>
+            <b class="answer-text">${answerObj.answerText}</b>
+        </div>
+        <span>Likes: <span class="answer-likes">${answerObj.likes || 0}</span></span>
+    `;
+
+    if (user) {
+        const actionRow = document.createElement('div');
+        actionRow.className = 'answer-action-row';
+
+        const likeBtn = document.createElement('button');
+        likeBtn.className = 'like-btn';
+        likeBtn.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
+        likeBtn.onclick = async () => {
+            const puzzleRef = doc(db, 'puzzles', puzzle.puzzleID);
+            const puzzleSnap = await getDoc(puzzleRef);
+            let answersArr = puzzleSnap.data().answers || [];
+            let newLikes = 0;
+            let updatedHasLiked = false;
+
+            answersArr = answersArr.map(a => {
+                if (a.answerID === answerObj.answerID) {
+                    let likedByArr = a.likedBy || [];
+                    updatedHasLiked = likedByArr.includes(user.userID);
+
+                    if (updatedHasLiked) {
+                        a.likes = Math.max((a.likes || 1) - 1, 0);
+                        likedByArr = likedByArr.filter(uid => uid !== user.userID);
+                    } else {
+                        a.likes = (a.likes || 0) + 1;
+                        likedByArr.push(user.userID);
+                    }
+                    a.likedBy = likedByArr;
+                    newLikes = a.likes;
+                }
+                return a;
+            });
+            await updateDoc(puzzleRef, { answers: answersArr });
+            updateAnswerLikes(answerDiv, newLikes, !updatedHasLiked);
+            showToast(updatedHasLiked ? 'You disliked this answer.' : 'You liked this answer.');
+        };
+        actionRow.appendChild(likeBtn);
+
+        if (answerObj.userID === user.userID) {
+            const delBtn = document.createElement('button');
+            delBtn.title = 'Delete';
+            delBtn.className = 'answer-delete-btn';
+            delBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            delBtn.onclick = () => {
+                showConfirmModal('Are you sure you want to delete this answer?', async () => {
+                    await deleteAnswer(user.userID, puzzle.puzzleID, answerObj);
+                    removeAnswerFromDOM(answerDiv);
+                    showToast('Answer deleted.');
+                });
+            };
+            actionRow.appendChild(delBtn);
+        }
+
+        answerDiv.appendChild(actionRow);
+    }
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-comments-btn';
+    toggleBtn.innerHTML = ' Show Comments';
+    toggleBtn.style.margin = '8px 0 0 0';
+    let commentsVisible = false;
+    let commentsDiv = null;
+
+    toggleBtn.onclick = () => {
+        commentsVisible = !commentsVisible;
+        if (commentsVisible) {
+            toggleBtn.innerHTML = 'Hide Comments';
+            if (!commentsDiv) {
+                commentsDiv = document.createElement('div');
+                commentsDiv.className = 'comments-list';
+
+                if (user) {
+                    const addCommentBox = document.createElement('div');
+                    addCommentBox.className = 'add-comment-box';
+                    addCommentBox.style.display = 'flex';
+                    addCommentBox.style.flexDirection = 'column';
+                    addCommentBox.style.gap = '8px';
+
+                    const commentInput = document.createElement('input');
+                    commentInput.type = 'text';
+                    commentInput.placeholder = 'Add a comment...';
+                    commentInput.className = 'comment-input';
+
+                    const commentBtn = document.createElement('button');
+                    commentBtn.className = 'comment-btn';
+                    commentBtn.textContent = 'Submit Comment';
+                    commentBtn.onclick = async () => {
+                        const text = commentInput.value.trim();
+                        if (!text) return showToast('Please enter a comment.');
+
+                        const newComment = await saveComment(user.userID, puzzle.puzzleID, answerObj, text);
+                        if (newComment) {
+                            addCommentToDOM(commentsDiv, newComment, user, answerObj, puzzle);
+                            commentInput.value = '';
+                            showToast('Comment submitted!');
+                        }
+                    };
+
+                    addCommentBox.appendChild(commentInput);
+                    addCommentBox.appendChild(commentBtn);
+                    commentsDiv.appendChild(addCommentBox);
+                }
+                answerDiv.appendChild(commentsDiv);
+            } else {
+                commentsDiv.style.display = 'block';
+            }
+        } else {
+            toggleBtn.innerHTML = 'Show Comments';
+            if (commentsDiv) commentsDiv.style.display = 'none';
+        }
+    };
+
+    answerDiv.appendChild(toggleBtn);
+    answersDiv.appendChild(answerDiv);
 }
 
 function showConfirmModal(message, onConfirm) {
@@ -245,10 +573,10 @@ async function renderAnswersAndComments(puzzle) {
     const user = getCurrentUser();
     if (Array.isArray(puzzle.answers) && puzzle.answers.length > 0) {
         const answersDiv = document.createElement('div');
-        answersDiv.innerHTML = '<h3>Answers</h3>';
-        puzzle.answers.forEach(answer => {
+        answersDiv.innerHTML = '<h3>Answers</h3>'; puzzle.answers.forEach(answer => {
             const answerDiv = document.createElement('div');
             answerDiv.className = 'answer-item';
+            answerDiv.setAttribute('data-answer-id', answer.answerID);
             answerDiv.innerHTML = `
                 <div class="answer-header">
                     <span class="answer-userid">${answer.userID || ''}</span>
@@ -263,15 +591,19 @@ async function renderAnswersAndComments(puzzle) {
                 const hasLiked = likedBy.includes(user.userID);
                 const likeBtn = document.createElement('button');
                 likeBtn.className = 'like-btn';
-                likeBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>';
-                likeBtn.onclick = async () => {
+                likeBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>'; likeBtn.onclick = async () => {
                     const puzzleRef = doc(db, 'puzzles', puzzle.puzzleID);
                     const puzzleSnap = await getDoc(puzzleRef);
                     let answersArr = puzzleSnap.data().answers || [];
+                    let newLikes = 0;
+                    let updatedHasLiked = false;
+
                     answersArr = answersArr.map(a => {
                         if (a.answerID === answer.answerID) {
                             let likedByArr = a.likedBy || [];
-                            if (hasLiked) {
+                            updatedHasLiked = likedByArr.includes(user.userID);
+
+                            if (updatedHasLiked) {
                                 a.likes = Math.max((a.likes || 1) - 1, 0);
                                 likedByArr = likedByArr.filter(uid => uid !== user.userID);
                             } else {
@@ -279,12 +611,13 @@ async function renderAnswersAndComments(puzzle) {
                                 likedByArr.push(user.userID);
                             }
                             a.likedBy = likedByArr;
+                            newLikes = a.likes;
                         }
                         return a;
                     });
                     await updateDoc(puzzleRef, { answers: answersArr });
-                    showToast(hasLiked ? 'You disliked this answer.' : 'You liked this answer.');
-                    setTimeout(() => window.location.reload(), 1200);
+                    updateAnswerLikes(answerDiv, newLikes, !updatedHasLiked);
+                    showToast(updatedHasLiked ? 'You disliked this answer.' : 'You liked this answer.');
                 };
                 actionRow.appendChild(likeBtn);
 
@@ -295,12 +628,11 @@ async function renderAnswersAndComments(puzzle) {
                         const reportBtn = document.createElement('button');
                         reportBtn.className = 'like-btn';
                         reportBtn.title = 'Report';
-                        reportBtn.innerHTML = '<i class="fa-solid fa-flag"></i>';
-                        reportBtn.onclick = () => {
+                        reportBtn.innerHTML = '<i class="fa-solid fa-flag"></i>'; reportBtn.onclick = () => {
                             showConfirmModal('Are you sure you want to report this answer?', async () => {
                                 await reportAnswer(user.userID, puzzle.puzzleID, answer);
                                 showToast('Answer reported.');
-                                setTimeout(() => window.location.reload(), 1200);
+                                reportBtn.style.display = 'none';
                             });
                         };
                         actionRow.appendChild(reportBtn);
@@ -311,12 +643,11 @@ async function renderAnswersAndComments(puzzle) {
                     const delBtn = document.createElement('button');
                     delBtn.title = 'Delete';
                     delBtn.className = 'answer-delete-btn';
-                    delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                    delBtn.onclick = () => {
+                    delBtn.innerHTML = '<i class="fas fa-trash"></i>'; delBtn.onclick = () => {
                         showConfirmModal('Are you sure you want to delete this answer?', async () => {
                             await deleteAnswer(user.userID, puzzle.puzzleID, answer);
+                            removeAnswerFromDOM(answerDiv);
                             showToast('Answer deleted.');
-                            setTimeout(() => window.location.reload(), 1200);
                         });
                     };
                     actionRow.appendChild(delBtn);
@@ -341,8 +672,8 @@ async function renderAnswersAndComments(puzzle) {
                         commentsDiv.className = 'comments-list';
                         if (Array.isArray(answer.comments)) {
                             answer.comments.forEach(comment => {
-                                const commentDiv = document.createElement('div');
-                                commentDiv.className = 'comment-item';
+                                const commentDiv = document.createElement('div'); commentDiv.className = 'comment-item';
+                                commentDiv.setAttribute('data-comment-id', comment.commentID);
                                 commentDiv.innerHTML = `
                                     <span class="comment-userid">${comment.userID || ''}</span>
                                     <span class="comment-text">${comment.commentText}</span>
@@ -355,33 +686,8 @@ async function renderAnswersAndComments(puzzle) {
                                     const hasLiked = likedBy.includes(user.userID);
                                     const likeCommentBtn = document.createElement('button');
                                     likeCommentBtn.className = 'like-btn';
-                                    likeCommentBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>';
-                                    likeCommentBtn.onclick = async () => {
-                                        const puzzleRef = doc(db, 'puzzles', puzzle.puzzleID);
-                                        const puzzleSnap = await getDoc(puzzleRef);
-                                        let answersArr = puzzleSnap.data().answers || [];
-                                        answersArr = answersArr.map(a => {
-                                            if (a.answerID === answer.answerID) {
-                                                a.comments = (a.comments || []).map(c => {
-                                                    if (c.commentID === comment.commentID) {
-                                                        let likedByArr = c.likedBy || [];
-                                                        if (hasLiked) {
-                                                            c.likes = Math.max((c.likes || 1) - 1, 0);
-                                                            likedByArr = likedByArr.filter(uid => uid !== user.userID);
-                                                        } else {
-                                                            c.likes = (c.likes || 0) + 1;
-                                                            likedByArr.push(user.userID);
-                                                        }
-                                                        c.likedBy = likedByArr;
-                                                    }
-                                                    return c;
-                                                });
-                                            }
-                                            return a;
-                                        });
-                                        await updateDoc(puzzleRef, { answers: answersArr });
-                                        showToast(hasLiked ? 'You disliked this comment.' : 'You liked this comment.');
-                                        setTimeout(() => window.location.reload(), 1200);
+                                    likeCommentBtn.innerHTML = hasLiked ? '<i class="fa-solid fa-thumbs-down"></i>' : '<i class="fa-solid fa-thumbs-up"></i>'; likeCommentBtn.onclick = async () => {
+                                        await handleCommentLike(user, puzzle, answer, comment, commentDiv);
                                     };
                                     commentActionRow.appendChild(likeCommentBtn);
 
@@ -392,12 +698,11 @@ async function renderAnswersAndComments(puzzle) {
                                             const reportCommentBtn = document.createElement('button');
                                             reportCommentBtn.className = 'like-btn';
                                             reportCommentBtn.title = 'Report';
-                                            reportCommentBtn.innerHTML = '<i class="fa-solid fa-flag"></i>';
-                                            reportCommentBtn.onclick = () => {
+                                            reportCommentBtn.innerHTML = '<i class="fa-solid fa-flag"></i>'; reportCommentBtn.onclick = () => {
                                                 showConfirmModal('Are you sure you want to report this comment?', async () => {
                                                     await reportComment(user.userID, puzzle.puzzleID, answer, comment);
                                                     showToast('Comment reported.');
-                                                    setTimeout(() => window.location.reload(), 1200);
+                                                    reportCommentBtn.style.display = 'none';
                                                 });
                                             };
                                             commentActionRow.appendChild(reportCommentBtn);
@@ -408,12 +713,11 @@ async function renderAnswersAndComments(puzzle) {
                                         const delBtn = document.createElement('button');
                                         delBtn.title = 'Delete';
                                         delBtn.className = 'comment-delete-btn';
-                                        delBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                                        delBtn.onclick = () => {
+                                        delBtn.innerHTML = '<i class="fas fa-trash"></i>'; delBtn.onclick = () => {
                                             showConfirmModal('Are you sure you want to delete this comment?', async () => {
                                                 await deleteComment(user.userID, puzzle.puzzleID, answer, comment);
+                                                removeCommentFromDOM(commentDiv);
                                                 showToast('Comment deleted.');
-                                                setTimeout(() => window.location.reload(), 1200);
                                             });
                                         };
                                         commentActionRow.appendChild(delBtn);
@@ -435,13 +739,16 @@ async function renderAnswersAndComments(puzzle) {
                             commentInput.className = 'comment-input';
                             commentBtn = document.createElement('button');
                             commentBtn.className = 'comment-btn';
-                            commentBtn.textContent = 'Submit Comment';
-                            commentBtn.onclick = async () => {
+                            commentBtn.textContent = 'Submit Comment'; commentBtn.onclick = async () => {
                                 const text = commentInput.value.trim();
                                 if (!text) return showToast('Please enter a comment.');
-                                await saveComment(user.userID, puzzle.puzzleID, answer, text);
-                                showToast('Comment submitted!');
-                                setTimeout(() => window.location.reload(), 1200);
+
+                                const newComment = await saveComment(user.userID, puzzle.puzzleID, answer, text);
+                                if (newComment) {
+                                    addCommentToDOM(commentsDiv, newComment, user, answer, puzzle);
+                                    commentInput.value = '';
+                                    showToast('Comment submitted!');
+                                }
                             };
                             addCommentBox.appendChild(commentInput);
                             addCommentBox.appendChild(commentBtn);
@@ -498,6 +805,7 @@ async function saveComment(userID, puzzleID, answerObj, commentText) {
         return ans;
     });
     await updateDoc(puzzleRef, { answers: puzzleAnswers });
+    return commentObj;
 }
 
 async function deleteComment(userID, puzzleID, answerObj, commentObj) {
@@ -526,6 +834,7 @@ async function deleteComment(userID, puzzleID, answerObj, commentObj) {
 }
 
 async function renderPuzzle(puzzle) {
+    currentPuzzle = puzzle;
     const container = document.body;
 
     if (puzzleChart) {
@@ -542,13 +851,13 @@ async function renderPuzzle(puzzle) {
         <h2 class="puzzle-title">${puzzle.puzzleTitle}</h2>
         <p class="puzzle-text">${puzzle.puzzleText}</p>
         <div class="puzzle-catdate">
+            <button class="like-btn" id="reportPuzzleButton"><i class="fa-solid fa-flag"></i></button>
             <strong>${puzzle.createdAt ? puzzle.createdAt.split('T')[0] : ''}</strong>
         </div>
-    `;
+    `;    const normalizedCategory = (puzzle.category || '').toLowerCase().replace(/\s+/g, '');
+    container.appendChild(puzzleDiv);
 
-    const normalizedCategory = (puzzle.category || '').toLowerCase().replace(/\s+/g, '');
-
-    container.appendChild(puzzleDiv); const user = getCurrentUser();
+    const user = getCurrentUser();
     const puzzleID = getpuzzleID(puzzle);
     let userHasDecided = false;
     let userHasAnswered = false;
@@ -620,67 +929,82 @@ async function renderPuzzle(puzzle) {
         const answersDiv = await renderAnswersAndComments(puzzle);
         container.appendChild(answersDiv);
     }
-
-
     if (document.getElementById('puzzleAgreeButton')) {
         document.getElementById('puzzleAgreeButton').onclick = async () => {
             if (!user) return showToast('Login required!');
-            const ok = await saveDecision(user.userID, puzzleID, puzzle.puzzleTitle, 'agree');
-            if (ok) {
-                const puzzleRef = doc(db, 'puzzles', puzzleID);
-                await updateDoc(puzzleRef, { agreedNumber: (puzzle.agreedNumber || 0) + 1 });
-                showToast('Decision submitted!');
-                setTimeout(() => window.location.reload(), 1200);
-            }
+            await handleDecisionSubmit(user, puzzle, 'I agree', 'agreedNumber');
         };
     }
     if (document.getElementById('puzzleDisagreeButton')) {
         document.getElementById('puzzleDisagreeButton').onclick = async () => {
             if (!user) return showToast('Login required!');
-            const ok = await saveDecision(user.userID, puzzleID, puzzle.puzzleTitle, 'disagree');
-            if (ok) {
-                const puzzleRef = doc(db, 'puzzles', puzzleID);
-                await updateDoc(puzzleRef, { disagreedNumber: (puzzle.disagreedNumber || 0) + 1 });
-                showToast('Decision submitted!');
-                setTimeout(() => window.location.reload(), 1200);
-            }
+            await handleDecisionSubmit(user, puzzle, 'I disagree', 'disagreedNumber');
         };
     }
     if (document.getElementById('optionRed')) {
         document.getElementById('optionRed').onclick = async () => {
             if (!user) return showToast('Login required!');
             const decisionText = document.getElementById('optionRed').textContent;
-            const ok = await saveDecision(user.userID, puzzleID, puzzle.puzzleTitle, decisionText);
-            if (ok) {
-                const puzzleRef = doc(db, 'puzzles', puzzleID);
-                await updateDoc(puzzleRef, { optionRedNumber: (puzzle.optionRedNumber || 0) + 1 });
-                showToast('Decision submitted!');
-                setTimeout(() => window.location.reload(), 1200);
-            }
+            await handleDecisionSubmit(user, puzzle, decisionText, 'optionRedNumber');
         };
     }
     if (document.getElementById('optionBlue')) {
         document.getElementById('optionBlue').onclick = async () => {
             if (!user) return showToast('Login required!');
             const decisionText = document.getElementById('optionBlue').textContent;
-            const ok = await saveDecision(user.userID, puzzleID, puzzle.puzzleTitle, decisionText);
-            if (ok) {
-                const puzzleRef = doc(db, 'puzzles', puzzleID);
-                await updateDoc(puzzleRef, { optionBlueNumber: (puzzle.optionBlueNumber || 0) + 1 });
-                showToast('Decision submitted!');
-                setTimeout(() => window.location.reload(), 1200);
-            }
-        };
-    }
-    if (document.getElementById('puzzleAnswerSubmit')) {
+            await handleDecisionSubmit(user, puzzle, decisionText, 'optionBlueNumber');
+        };    } if (document.getElementById('puzzleAnswerSubmit')) {
         document.getElementById('puzzleAnswerSubmit').onclick = async () => {
             if (!user) return showToast('Login required!');
             const answerText = document.getElementById('puzzleAnswerInput').value.trim();
             if (!answerText) return showToast('Please enter your answer.');
-            await saveAnswer(user.userID, puzzleID, answerText);
-            showToast('Answer submitted!');
-            setTimeout(() => window.location.reload(), 1200);
+
+            const newAnswer = await saveAnswer(user.userID, puzzleID, answerText);
+            if (newAnswer) {
+                await addAnswerToDOM(newAnswer, user, puzzle);
+                document.getElementById('puzzleAnswerInput').value = '';
+                showToast('Answer submitted!');
+            }
         };
+    }
+    const reportPuzzleBtn = document.getElementById('reportPuzzleButton');
+    if (reportPuzzleBtn) {
+        if (user) {
+            const reportedBy = puzzle.reportedBy || [];
+            const hasReported = reportedBy.includes(user.userID);
+
+            if (hasReported) {
+                reportPuzzleBtn.style.display = 'none';
+                const puzzleCatDate = document.querySelector('.puzzle-catdate');
+                if (puzzleCatDate) {
+                    puzzleCatDate.classList.add('no-report-button');
+                }
+            } else {
+                reportPuzzleBtn.onclick = () => {
+                    showConfirmModal('Are you sure you want to report this puzzle?', async () => {
+                        const success = await reportPuzzle(user.userID, puzzleID);
+                        if (success) {
+                            showToast('Puzzle reported successfully.');
+                            reportPuzzleBtn.style.display = 'none';
+                            const puzzleCatDate = document.querySelector('.puzzle-catdate');
+                            if (puzzleCatDate) {
+                                puzzleCatDate.classList.add('no-report-button');
+                            }
+                        } else {
+                            showToast('You have already reported this puzzle.');
+                        }
+                    });
+                };            }
+        } else {
+            reportPuzzleBtn.onclick = () => {
+                showToast('Login required to report content!');
+            };
+        }
+    } else {
+        const puzzleCatDate = document.querySelector('.puzzle-catdate');
+        if (puzzleCatDate) {
+            puzzleCatDate.classList.add('no-report-button');
+        }
     }
 }
 
@@ -752,10 +1076,10 @@ export async function saveAnswer(userID, puzzleID, answerText) {
     };
     await updateDoc(userRef, {
         answers: arrayUnion(answerObj)
-    });
-    await updateDoc(puzzleRef, {
+    }); await updateDoc(puzzleRef, {
         answers: arrayUnion(answerObj)
     });
+    return answerObj;
 }
 
 export async function deleteAnswer(userID, puzzleID, answerObj) {
@@ -802,6 +1126,26 @@ async function init() {
 }
 
 init();
+
+async function reportPuzzle(userID, puzzleID) {
+    const puzzleRef = doc(db, 'puzzles', puzzleID);
+    const puzzleSnap = await getDoc(puzzleRef);
+    const puzzleData = puzzleSnap.data();
+
+    let reportedByArr = puzzleData.reportedBy || [];
+    if (!reportedByArr.includes(userID)) {
+        const reportCount = (puzzleData.reportCount || 0) + 1;
+        reportedByArr.push(userID);
+
+        await updateDoc(puzzleRef, {
+            reportCount: reportCount,
+            reportedBy: reportedByArr
+        });
+
+        return true;
+    }
+    return false;
+}
 
 async function reportAnswer(userID, puzzleID, answerObj) {
     const puzzleRef = doc(db, 'puzzles', puzzleID);
@@ -867,7 +1211,5 @@ async function reportComment(userID, puzzleID, answerObj, commentObj) {
             });
         }
         return ans;
-    });
-
-    await updateDoc(userRef, { answers: userAnswers });
+    });    await updateDoc(userRef, { answers: userAnswers });
 }

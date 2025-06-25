@@ -139,10 +139,9 @@ onAuthStateChanged(auth, async (user) => {
       showProfileInfo(true);
       emailP.textContent = user.email;
       
-      const emailDoc = await getDoc(doc(db, 'emails', user.email));
-      let userID = '#UNKNOWN';
+      const emailDoc = await getDoc(doc(db, 'emails', user.email));      let userID = '#UNKNOWN';
       let creationDate = '';
-      let decisions = [], answers = [], comments = [];
+      let decisions = [], answers = [], comments = [], myPuzzles = [];
       
       if (emailDoc.exists()) {
         userID = '#' + (emailDoc.data().userID || 'UNKNOWN');
@@ -156,9 +155,9 @@ onAuthStateChanged(auth, async (user) => {
             const date = new Date(createdAt);
             creationDate = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')}`;
           }
-          
-          decisions = userData.decisions || [];
+            decisions = userData.decisions || [];
           answers = userData.answers || [];
+          myPuzzles = userData.myPuzzles || [];
           comments = [];
           
           answers.forEach(ans => {
@@ -213,15 +212,15 @@ onAuthStateChanged(auth, async (user) => {
       }
       
       userIDSpan.textContent = userID;
-      creationDateP.textContent = creationDate || '-';
-
-      document.getElementById('decisionsCount').textContent = decisions.length;
+      creationDateP.textContent = creationDate || '-';      document.getElementById('decisionsCount').textContent = decisions.length;
       document.getElementById('answerCount').textContent = answers.length;
       document.getElementById('commentCount').textContent = comments.length;
+      document.getElementById('myPuzzlesCount').textContent = myPuzzles.length;
 
       const decisionsList = document.getElementById('userDecisionsList');
       const answersList = document.getElementById('userAnswersList');
       const commentsList = document.getElementById('userCommentsList');
+      const puzzlesList = document.getElementById('userPuzzlesList');
       
       if (decisionsList) {
         decisionsList.innerHTML = '';
@@ -258,8 +257,7 @@ onAuthStateChanged(auth, async (user) => {
           answersList.appendChild(card);
         });
       }
-      
-      if (commentsList) {
+        if (commentsList) {
         commentsList.innerHTML = '';
         comments.forEach(c => {
           const card = document.createElement('div');
@@ -276,6 +274,52 @@ onAuthStateChanged(auth, async (user) => {
           }
           commentsList.appendChild(card);
         });
+      }
+      
+      if (puzzlesList) {
+        puzzlesList.innerHTML = '';
+        if (myPuzzles.length === 0) {
+          const emptyCard = document.createElement('div');
+          emptyCard.className = 'list-group-item text-center';
+          emptyCard.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-puzzle-piece fa-3x mb-3" style="color: var(--secondary-color);"></i>
+              <p>You haven't created any puzzles yet.</p>
+              <a href="/create.html" class="btn btn-primary">Create Your First Puzzle</a>
+            </div>
+          `;
+          puzzlesList.appendChild(emptyCard);
+        } else {
+          myPuzzles.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'list-group-item puzzle-card';
+            card.style.cursor = 'pointer';
+            card.tabIndex = 0;
+            
+            const createdDate = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '';
+            const categoryBadge = p.category ? `<span class="badge badge-secondary">${p.category}</span>` : '';
+            
+            card.innerHTML = `
+              <div class="puzzle-card-header">
+                <strong>${p.puzzleTitle || 'Untitled Puzzle'}</strong>
+                ${categoryBadge}
+              </div>
+              <div class="puzzle-card-meta">
+                <small class="text-muted">
+                  <i class="fas fa-calendar"></i> Created: ${createdDate}
+                  <i class="fas fa-link ml-2"></i> View Puzzle
+                </small>
+              </div>
+            `;
+            
+            if (p.slug) {
+              card.onclick = () => {
+                window.open(p.slug, '_blank');
+              };
+            }
+            puzzlesList.appendChild(card);
+          });
+        }
       }
     } catch (error) {
       console.error('Error in auth state change handler:', error);

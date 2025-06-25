@@ -25,6 +25,60 @@
 
 <body>
 
+    <!-- Navbar Start -->
+    <nav class="navbar container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="./assets/images/icon.svg" alt="Aporia Icon" class="navbar-brand-icon">
+            <span class="largescreen">Aporia</span>
+        </a>
+        <div class="navbar-menu largescreen">
+            <ul class="menu-items">
+                <li class="menu-item">
+                    <a class="nav-link" href="./index">Home</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="./explore">Explore</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link active" aria-current="page" href="./community.html">Community</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="/create.html">Create</a>
+                </li>
+                <li class="menu-item">
+                    <a class="nav-link" href="./profile.html">Profile</a>
+                </li>
+            </ul>
+        </div>
+        <a class="largescreen navbar-button-a" href="./login.html"><button class="navbar-button">Login</button></a>
+        <div class="hamburger" id="hamburger-menu">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </div>
+    </nav>
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <ul class="menu-items">
+            <li class="menu-item">
+                <a class="nav-link" href="./index">Home</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="./explore">Explore</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link active" aria-current="page" href="./community.html">Community</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="/create.html">Create</a>
+            </li>
+            <li class="menu-item">
+                <a class="nav-link" href="./profile.html">Profile</a>
+            </li>
+        </ul>
+        <a class="navbar-button-a" href="./login.html"><button class="navbar-button">Login</button></a>
+    </div>
+    <!-- Navbar End -->
+
     <!--Navigation bar-->
 
     <!-- List of the currently active users -->
@@ -33,9 +87,8 @@
 
     <!-- List of the most popular questions (Top20) -->
 
-    <!-- Footer section -->
-
-    <!--Own scripts-->
+    <!-- Footer section -->    <!--Own scripts-->
+    <script type="module" src="./assets/js/main.js"></script>
     <script src="./assets/js/firebase_init.js"></script>
     <script src="./assets/js/posts.js"></script>
 </body>
